@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 import argparse
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test heatmap OCI function locally")
+    parser = argparse.ArgumentParser(
+        description="Test faces detection OCI function locally"
+    )
     parser.add_argument("--market", help="Market identifier (optional)", required=False)
     parser.add_argument(
         "--recording_id",
