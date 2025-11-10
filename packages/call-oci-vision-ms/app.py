@@ -25,7 +25,7 @@ class VideoRequest(BaseModel):
 
 
 @app.post("/analyze-video")
-async def analyze_video(request: VideoRequest):
+def analyze_video(request: VideoRequest):
     try:
         print("Video analysis job started...")
 
