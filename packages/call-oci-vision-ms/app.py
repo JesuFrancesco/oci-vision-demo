@@ -30,11 +30,15 @@ def analyze_video(request: VideoRequest):
         print("Video analysis job started...")
 
         input_path = request.input_video_path
+        send_email_notification(
+            f"Análisis de {input_path} iniciado", "El análisis de video ha comenzado."
+        )
+
         res = start_video_analysis_job(input_path)
-
         print(f"Function completed with result: {res}")
-
-        send_email_notification(f"Análisis de {input_path} finalizado", res)
+        send_email_notification(
+            f"Análisis de {input_path} finalizado", f"Resultado: {res}"
+        )
 
         return {"result": res}
     except Exception as e:
