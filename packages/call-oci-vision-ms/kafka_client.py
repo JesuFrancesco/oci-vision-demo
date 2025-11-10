@@ -34,21 +34,40 @@ def start_consumer(topic: str, callback):
             sasl_mechanism="PLAIN",
             sasl_plain_username=SASL_USERNAME,
             sasl_plain_password=SASL_PASSWORD,
+            # auto_offset_reset="earliest",  # Start from beginning if no offset
+            # enable_auto_commit=True,
         )
-        print(f"Kafka consumer started on topic: {topic}")
+        print(f"✅ Kafka consumer started on topic: {topic}")
+        print(f"Connected to: {KAFKA_BOOTSTRAP_SERVERS}")
 
-        for msg in consumer:
-            try:
-                print(f"Received message: {msg.value}")
-                # Check if callback is a coroutine function
-                if asyncio.iscoroutinefunction(callback):
-                    loop.run_until_complete(callback(msg.value))
-                else:
-                    callback(msg.value)
-            except Exception as e:
-                print(f"Error processing message: {e}")
+        try:
+            for msg in consumer:
+                print(
+                    f"📨 Received message from topic '{msg.topic}': {msg.value[:100]}..."
+                )  # Log first 100 chars
+                try:
+                    # Check if callback is a coroutine function
+                    if asyncio.iscoroutinefunction(callback):
+                        loop.run_until_complete(callback(msg.value))
+                    else:
+                        callback(msg.value)
+                    print(f"✅ Message processed successfully")
+                except Exception as e:
+                    print(f"❌ Error processing message: {e}")
+                    import traceback
 
-    threading.Thread(target=consume, daemon=True).start()
+                    traceback.print_exc()
+        except Exception as e:
+            print(f"❌ Consumer error: {e}")
+            import traceback
+
+            traceback.print_exc()
+        finally:
+            consumer.close()
+
+    thread = threading.Thread(target=consume, daemon=True)
+    thread.start()
+    print(f"🚀 Kafka consumer thread started for topic: {topic}")
 
 
 def kafka_trigger(topic: str):
@@ -58,11 +77,15 @@ def kafka_trigger(topic: str):
     """
 
     def decorator(func):
-        start_consumer(topic, func)
+        # Don't start consumer here - it will be started on app startup
 
         @wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
+        # Store metadata for later initialization
+        wrapper._kafka_topic = topic
+        wrapper._kafka_callback = func
 
         return wrapper
 
