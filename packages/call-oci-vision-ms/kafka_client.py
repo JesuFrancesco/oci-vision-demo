@@ -1,7 +1,7 @@
 from functools import wraps
 import threading
-import json
 import os
+import asyncio
 
 from kafka import KafkaConsumer
 
@@ -21,6 +21,10 @@ def start_consumer(topic: str, callback):
         )
 
     def consume():
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         consumer = KafkaConsumer(
             topic,
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
@@ -32,10 +36,15 @@ def start_consumer(topic: str, callback):
             sasl_plain_password=SASL_PASSWORD,
         )
         print(f"Kafka consumer started on topic: {topic}")
+
         for msg in consumer:
             try:
                 print(f"Received message: {msg.value}")
-                callback(msg.value)
+                # Check if callback is a coroutine function
+                if asyncio.iscoroutinefunction(callback):
+                    loop.run_until_complete(callback(msg.value))
+                else:
+                    callback(msg.value)
             except Exception as e:
                 print(f"Error processing message: {e}")
 

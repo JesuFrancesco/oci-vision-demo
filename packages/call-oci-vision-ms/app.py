@@ -27,12 +27,12 @@ class VideoRequest(BaseModel):
 @app.post("/analyze-video")
 async def analyze_video(request: VideoRequest):
     try:
-        logging.getLogger().info("Video analysis job started...")
+        print("Video analysis job started...")
 
         input_path = request.input_video_path
         res = start_video_analysis_job(input_path)
 
-        logging.getLogger().info(f"Function completed with result: {res}")
+        print(f"Function completed with result: {res}")
 
         send_email_notification(f"Análisis de {input_path} finalizado", res)
 
@@ -44,8 +44,8 @@ async def analyze_video(request: VideoRequest):
 @kafka_trigger(
     topic="ocivision-kafka-stream",
 )
-async def kafka_video_analyzer(message: bytes):
-    logging.getLogger().info("Kafka message received, starting video analysis job...")
+def kafka_video_analyzer(message: bytes):
+    print("Kafka message received, starting video analysis job...")
 
     analyze_video(VideoRequest(input_video_path=message.decode("utf-8")))
 
