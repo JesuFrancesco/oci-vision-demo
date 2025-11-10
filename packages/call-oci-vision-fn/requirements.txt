@@ -1,3 +1,0 @@
-oci
-python-dotenv
-opencv-python

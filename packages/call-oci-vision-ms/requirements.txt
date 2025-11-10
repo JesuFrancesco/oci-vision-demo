@@ -1,0 +1,8 @@
+oci
+oci-cli
+numpy>=1.24.0,<2.0.0
+opencv-python-headless
+fastapi
+pydantic
+kafka-python
+uvicorn

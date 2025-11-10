@@ -9,8 +9,8 @@ import oci
 from oci.ai_vision.models import *
 import cv2
 
-# TODO: update credentials for oci function
-config = oci.config.from_file("~/.oci/config")
+config = {}
+signer = oci.auth.signers.get_resource_principals_signer()
 
 human_classes_list = [
     "Person",
@@ -32,7 +32,7 @@ def send_email_notification(subject: str, body: str):
 
     TOPIC_OCID = os.getenv("EMAIL_TOPIC_OCID")
 
-    email_client = oci.ons.NotificationDataPlaneClient(config=config)
+    email_client = oci.ons.NotificationDataPlaneClient(config=config, signer=signer)
 
     message_title = f"[oci-vision] {subject}"
     message_body = f"{body}\n\nThis is an automated message."
@@ -61,7 +61,9 @@ def extract_and_save_frames(video_object_path: str, video_response_json, config)
     OUTPUT_BUCKET = os.getenv("OUTPUT_BUCKET")
     OUTPUT_PREFIX = "processed-frames"
 
-    object_storage_client = oci.object_storage.ObjectStorageClient(config)
+    object_storage_client = oci.object_storage.ObjectStorageClient(
+        config=config, signer=signer
+    )
 
     # --- Download video to temp file ---
     print("Downloading video for frame extraction...")
@@ -256,7 +258,9 @@ def start_video_analysis_job(input_object_path: str) -> bool:
     output_location.prefix = OUTPUT_PREFIX
 
     # Creating vision client
-    ai_service_vision_client = oci.ai_vision.AIServiceVisionClient(config=config)
+    ai_service_vision_client = oci.ai_vision.AIServiceVisionClient(
+        config=config, signer=signer
+    )
 
     # Creating input for video job
     create_video_job_details = CreateVideoJobDetails()
@@ -293,7 +297,9 @@ def start_video_analysis_job(input_object_path: str) -> bool:
         raise Exception("Video analysis job failed.")
 
     # Getting object storage client
-    object_storage_client = oci.object_storage.ObjectStorageClient(config)
+    object_storage_client = oci.object_storage.ObjectStorageClient(
+        config=config, signer=signer
+    )
     object_name = f"{OUTPUT_PREFIX}/{job_id}/{object_location_1.object_name}.json"
 
     # Getting response from object location
