@@ -11,6 +11,7 @@ def handler(ctx, data: io.BytesIO = None):
 
         logging.getLogger().info("Video analysis job started...")
 
+        # TODO: parse Object Storage event format
         input_path = body.get("input_object_path")
 
         from call_oci_vision import start_video_analysis_job

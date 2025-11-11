@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -71,8 +72,14 @@ def analyze_video(request: VideoRequest):
 def kafka_video_analyzer(message: bytes):
     print(f"🎬 Kafka message received: {message.decode('utf-8')}")
 
+    # Create Object Event format example:
+    # {"data": {"resourceName": "path/to/video.mp4"}}
+
+    data = json.loads(message.decode("utf-8"))
+    resource_name = data.get("data", {}).get("resourceName")
+
     try:
-        analyze_video(VideoRequest(input_video_path=message.decode("utf-8")))
+        analyze_video(VideoRequest(input_video_path=resource_name))
     except Exception as e:
         print(f"❌ Error in kafka_video_analyzer: {e}")
         import traceback
